@@ -10,9 +10,9 @@ import './app.css'
 function App () {
     // Имитируем получение данных с сервера
     const data = [
-        {name: 'John', salary: 800, increase: false},
-        {name: 'Carl', salary: 3800, increase: true},
-        {name: 'Grey', salary: 1200, increase: false},
+        {name: 'John', salary: 800, increase: false, id: 1},
+        {name: 'Carl', salary: 3800, increase: true, id: 2},
+        {name: 'Grey', salary: 1200, increase: false, id: 3},
     ];
 
     return (
