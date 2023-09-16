@@ -2,7 +2,7 @@ import EmployeesListItem from '../employees-list-item/employees-list-item';
 
 import './employees-list.css';
 
-const EmployeesList = ({data}) => {
+const EmployeesList = ({data, onDelete}) => {
 
     const elements = data.map(item => {
         // Деструктуризация по остаточному принципу (получаем id + всё остальные записываем в ...itemProps)
@@ -10,7 +10,11 @@ const EmployeesList = ({data}) => {
         return (
             // <EmployeesListItem name={item.name} salary={item.salary}/>
             // Используя spread-оператор
-            <EmployeesListItem key={id} {...itemProps}/>
+            <EmployeesListItem 
+            key={id} 
+            {...itemProps}
+            onDelete={() => onDelete(id)}
+            />
         )
     })
 
