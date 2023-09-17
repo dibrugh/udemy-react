@@ -22,7 +22,7 @@ class EmployeesAddForm extends Component {
     onSubmit = (e) => {
         e.preventDefault();
         // Вызываю функцию, которую прокинул с app.js, передавая туда name из salary из стейта этого компонента
-        this.props.onAdd(this.state.name, this.state.salary);
+        (this.state.name.length > 3 && this.state.salary) && this.props.onAdd(this.state.name, this.state.salary);
         // После чего очищаю форму
         this.setState({
             name: '',
