@@ -18,6 +18,9 @@ class App extends Component {
                 { name: 'Carl', salary: 3800, increase: true, promotion: false, id: 2 },
                 { name: 'Grey', salary: 1200, increase: false, promotion: false, id: 3 },
             ],
+            term: '',
+            // Базовый фильтр
+            filter: 'all',
         }
         this.maxId = 4;
     }
@@ -75,16 +78,50 @@ class App extends Component {
                 // Проходимся по каждому объекту и проверяем, чтобы id, который пришёл внутри метода, совпадал с id элемента
                 if (item.id === id) {
                     // Возвращаем новый объект, с динамическими свойствами
-                    return { ...item, [prop]: !item[prop]}
+                    return { ...item, [prop]: !item[prop] }
                 }
                 return item;
             })
         }))
     }
+    // Поиск сотрудника
+    searchEmp = (items, term) => {
+        // Нужно проработать вариант, когда пользователь ввёл строку, а потом стёр
+        if (term.length === 0) return items;
+
+        return items.filter(item => {
+            // Берём name и ищем подстроку, т.е введенный символ
+            return item.name.indexOf(term) > -1
+        })
+    }
+
+    onUpdateSearch = (term) => {
+        // Запись равносильна {term: term}
+        this.setState({ term });
+    }
+
+    filterPost = (items, filter) => {
+        switch(filter) {
+            case 'promotion': 
+                return items.filter(item => item.promotion);
+                // React автоматически доставляет break
+            case 'salary': 
+                return items.filter(item => item.salary > 1000)
+            default: 
+                return items;
+        }
+    }
+
+    onFilterSelect = (filter) => {
+        this.setState({filter})
+    }
 
     render() {
-        const employees = this.state.data.length;
-        const increased = this.state.data.filter(elem => elem.increase).length;
+        const { data, term, filter } = this.state;
+        const employees = data.length;
+        const increased = data.filter(elem => elem.increase).length;
+        // Итоговые отфильтрованные данные + примененные фильтры. Т.е фильтруем отфильтрованный массив.
+        const visibleData = this.filterPost(this.searchEmp(data, term), filter);
         return (
             <div className="app">
                 <AppInfo
@@ -93,12 +130,17 @@ class App extends Component {
                 />
 
                 <div className="search-panel">
-                    <SearchPanel />
-                    <AppFilter />
+                    <SearchPanel
+                        onUpdateSearch={this.onUpdateSearch}
+                    />
+                    <AppFilter
+                        filter={filter}
+                        onFilterSelect={this.onFilterSelect}
+                    />
                 </div>
 
                 <EmployeesList
-                    data={this.state.data}
+                    data={visibleData}
                     onDelete={this.deleteItem}
                     onToggleProp={this.onToggleProp}
                 />
