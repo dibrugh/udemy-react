@@ -3,6 +3,7 @@ import MarvelService from '../../services/MarvelService'
 import mjolnir from '../../resources/img/mjolnir.png';
 import { Component } from 'react';
 import Spinner from '../spinner/Spinner';
+import ErrorMessage from '../errorMessage/ErrorMessage';
 
 class RandomChar extends Component {
     constructor(props) {
@@ -13,6 +14,7 @@ class RandomChar extends Component {
     state = {
         char: {},
         loading: true,
+        error: false,
     }
 
     marvelService = new MarvelService();
@@ -20,7 +22,17 @@ class RandomChar extends Component {
     // Если персонаж загрузился, помещаем в стейт
     onCharLoaded = (char) => {
         // Как только данные загрузятся, loading переходит в false и убирает спиннер
-        this.setState({ char, loading: false })
+        this.setState({
+            char,
+            loading: false
+        })
+    }
+
+    onError = () => {
+        this.setState({
+            loading: false,
+            error: true
+        })
     }
 
     updateChar = () => {
@@ -28,16 +40,23 @@ class RandomChar extends Component {
         this.marvelService
             .getCharacter(id)
             .then(this.onCharLoaded)
+            // Отлавливаем возможные ошибки
+            .catch(this.onError)
     }
 
 
     render() {
-        const { char, loading } = this.state;
+        const { char, loading, error } = this.state;
+        // Выносим вычисления наверх / условный рендеринг
+        const errorMessage = error ? <ErrorMessage/> : null;
+        const spinner = loading ? <Spinner/> : null;
+        const content = !(loading || error) ? <View char={char}/> : null;
 
         return (
             <div className="randomchar">
-                {/* Условный рендеринг */}
-                {loading ? <Spinner/> : <View char={char}/>}
+                {errorMessage}
+                {spinner}
+                {content}
                 <div className="randomchar__static">
                     <p className="randomchar__title">
                         Random character for today!<br />
