@@ -1,52 +1,65 @@
 import './charList.scss';
-import abyss from '../../resources/img/abyss.jpg';
 
-const CharList = () => {
-    return (
-        <div className="char__list">
-            <ul className="char__grid">
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item char__item_selected">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-                <li className="char__item">
-                    <img src={abyss} alt="abyss"/>
-                    <div className="char__name">Abyss</div>
-                </li>
-            </ul>
-            <button className="button button__main button__long">
-                <div className="inner">load more</div>
-            </button>
-        </div>
-    )
+import MarvelService from '../../services/MarvelService';
+import { Component } from 'react';
+import ErrorMessage from '../errorMessage/ErrorMessage';
+import Spinner from '../spinner/Spinner';
+import CharItem from '../charItem/CharItem';
+
+class CharList extends Component {
+
+    state = {
+        charList: [],
+        loading: true,
+        error: false,
+    }
+
+    marvelService = new MarvelService();
+
+    componentDidMount = () => {
+        this.marvelService.getAllCharacters()
+            .then(this.onCharListLoaded)
+            // Отлавливаем возможные ошибки
+            .catch(this.onError)
+    }
+
+    // Если персонаж загрузился, помещаем в стейт
+    onCharListLoaded = (charList) => {
+        // Как только данные загрузятся, loading переходит в false и убирает спиннер
+        this.setState({
+            charList,
+            loading: false,
+        })
+    }
+
+    onError = () => {
+        this.setState({
+            loading: false,
+            error: true
+        })
+    }
+
+    render() {
+        const { loading, error } = this.state;
+
+        const errorMessage = error ? <ErrorMessage /> : null;
+        const spinner = loading ? <Spinner /> : null;
+        const content = !(loading || error) ? this.state.charList.map((item) => <CharItem item={item} />) : null;
+
+        return (
+            <div className="char__list">
+                <ul className="char__grid">
+                    {errorMessage}
+                    {spinner}
+                    {content}
+                </ul>
+
+                <button className="button button__main button__long">
+                    <div className="inner">load more</div>
+                </button>
+            </div>
+        )
+    }
 }
 
 export default CharList;
