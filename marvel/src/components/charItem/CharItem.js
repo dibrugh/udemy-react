@@ -11,7 +11,6 @@ export class CharItem extends Component {
         if (this.props.item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
             imgStyle = { 'objectFit': 'unset' };
         }
-        console.log(this.props.item.thumbnail)
         return (
             <li
                 className="char__item"
