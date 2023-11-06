@@ -7,6 +7,9 @@ import Spinner from '../spinner/Spinner';
 import CharItem from '../charItem/CharItem';
 
 class CharList extends Component {
+    constructor(props) {
+        super(props)
+    }
 
     state = {
         charList: [],
@@ -44,7 +47,7 @@ class CharList extends Component {
 
         const errorMessage = error ? <ErrorMessage /> : null;
         const spinner = loading ? <Spinner /> : null;
-        const content = !(loading || error) ? this.state.charList.map((item) => <CharItem item={item} />) : null;
+        const content = !(loading || error) ? this.state.charList.map((item) => <CharItem item={item} onCharSelected={this.props.onCharSelected}/>) : null;
 
         return (
             <div className="char__list">

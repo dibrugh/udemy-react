@@ -30,11 +30,13 @@ class MarvelService {
     // Функция, которая формирует объект только с нужными данными для избежания дублирования кода в других компонентах
     _transformCharacter = (char) => {
         return {
+            id: char.id,
             name: char.name,
             description: char.description.length ? `${char.description.slice(0, 210)}...` : 'There is no description for this character',
             thumbnail: char.thumbnail.path + '.' + char.thumbnail.extension,
             homepage: char.urls[0].url,
             wiki: char.urls[1].url,
+            comics: char.comics.items,
         }
     }
 }

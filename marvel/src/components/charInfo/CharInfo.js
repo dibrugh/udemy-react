@@ -1,60 +1,137 @@
 import './charInfo.scss';
-import thor from '../../resources/img/thor.jpeg';
+import { Component } from 'react';
+import MarvelService from '../../services/MarvelService';
+import Spinner from '../spinner/Spinner';
+import Skeleton from '../skeleton/Skeleton';
+import ErrorMessage from '../errorMessage/ErrorMessage';
 
-const CharInfo = () => {
+class CharInfo extends Component {
+
+    state = {
+        char: null,
+        loading: false,
+        error: false,
+    }
+
+    marvelService = new MarvelService();
+
+    // Вызывается после создания компонента на странице, в этот момент можно выполнять запросы на сервер, подписываться, выполнять асинхр. 
+    componentDidMount() {
+        this.updateChar();
+    }
+
+    // предыщие Props и State нужны для того, чтобы не получить бесконечный цикл, т.к setState вызывает ререндер
+    componentDidUpdate(prevProps, prevState) {
+        // Избегаем попадание в бесконечный цикл + не запускаем перерисовку, если пользователь кликает несколько раз по 1 персонажу
+        if (this.props.charId !== prevProps.charId) {
+            this.updateChar();
+        }
+    }
+
+    // Обновление компонента по клику
+    updateChar = () => {
+        const { charId } = this.props;
+        // Если id не приходит в props, ретурним
+        if (!charId) {
+            return;
+        }
+
+        this.onCharLoading();
+        this.marvelService
+            .getCharacter(charId)
+            .then(this.onCharLoaded)
+            .catch(this.onError)
+    }
+
+    // Если персонаж загрузился, помещаем в стейт
+    onCharLoaded = (char) => {
+        // Как только данные загрузятся, loading переходит в false и убирает спиннер
+        this.setState({
+            char,
+            loading: false
+        })
+    }
+
+    onError = () => {
+        this.setState({
+            loading: false,
+            error: true
+        })
+    }
+
+    // Крутим спиннер пока получаем данные
+    onCharLoading = () => {
+        this.setState({
+            loading: true,
+        })
+    }
+
+    render() {
+        const { char, loading, error } = this.state;
+        // Условный рендеринг
+
+        // Если не загружен персонаж, не загрузка, не ошибка, то отображаем Skeleton в качестве заглушки
+        const skeleton = char || loading || error ? null : <Skeleton />
+        const errorMessage = error ? <ErrorMessage /> : null;
+        const spinner = loading ? <Spinner /> : null;
+        // Не загрузка, не ошибка, но есть персонаж !(!char)
+        const content = !(loading || error || !char) ? <View char={char} /> : null;
+        return (
+            <div className="char__info">
+                {skeleton}
+                {errorMessage}
+                {spinner}
+                {content}
+            </div>
+        )
+    }
+}
+
+// Разделяем компонент выше на 2 компонента: View и State
+const View = ({ char }) => {
+    const { name, description, thumbnail, homepage, wiki, comics } = char;
+    let imgStyle = { 'objectFit': 'cover' };
+    if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+        imgStyle = { 'objectFit': 'contain' };
+    }
+
     return (
-        <div className="char__info">
+        <>
             <div className="char__basics">
-                <img src={thor} alt="abyss"/>
+                <img src={thumbnail} alt={name} style={imgStyle}/>
                 <div>
-                    <div className="char__info-name">thor</div>
+                    <div className="char__info-name">{name}</div>
                     <div className="char__btns">
-                        <a href="#" className="button button__main">
+                        <a href={homepage} className="button button__main">
                             <div className="inner">homepage</div>
                         </a>
-                        <a href="#" className="button button__secondary">
+                        <a href={wiki} className="button button__secondary">
                             <div className="inner">Wiki</div>
                         </a>
                     </div>
                 </div>
             </div>
             <div className="char__descr">
-                In Norse mythology, Loki is a god or jötunn (or both). Loki is the son of Fárbauti and Laufey, and the brother of Helblindi and Býleistr. By the jötunn Angrboða, Loki is the father of Hel, the wolf Fenrir, and the world serpent Jörmungandr. By Sigyn, Loki is the father of Nari and/or Narfi and with the stallion Svaðilfari as the father, Loki gave birth—in the form of a mare—to the eight-legged horse Sleipnir. In addition, Loki is referred to as the father of Váli in the Prose Edda.
+                {description}
             </div>
             <div className="char__comics">Comics:</div>
             <ul className="char__comics-list">
-                <li className="char__comics-item">
-                    All-Winners Squad: Band of Heroes (2011) #3
-                </li>
-                <li className="char__comics-item">
-                    Alpha Flight (1983) #50
-                </li>
-                <li className="char__comics-item">
-                    Amazing Spider-Man (1999) #503
-                </li>
-                <li className="char__comics-item">
-                    Amazing Spider-Man (1999) #504
-                </li>
-                <li className="char__comics-item">
-                    AMAZING SPIDER-MAN VOL. 7: BOOK OF EZEKIEL TPB (Trade Paperback)
-                </li>
-                <li className="char__comics-item">
-                    Amazing-Spider-Man: Worldwide Vol. 8 (Trade Paperback)
-                </li>
-                <li className="char__comics-item">
-                    Asgardians Of The Galaxy Vol. 2: War Of The Realms (Trade Paperback)
-                </li>
-                <li className="char__comics-item">
-                    Vengeance (2011) #4
-                </li>
-                <li className="char__comics-item">
-                    Avengers (1963) #1
-                </li>
-                <li className="char__comics-item">
-                    Avengers (1996) #1
-                </li>
+                {comics.length > 0 ? null : 'Unfortunately, there are no comics...'}
+                {
+                    // Список комиксов меняться не будет, поэтому можно индекс использовать в качестве key
+                    comics.map((item, i) => {
+                        // Если комиксов больше 9, выходим из цикла. Но на больших числах такое лучше не использовать, т.к каждый раз
+                        // идёт проверка и просто выход из условия.
+                        if (i > 9) return;
+                        return (
+                            <li ket={i} className="char__comics-item">
+                                {item.name}
+                            </li>
+                        )
+                    })
+                }
             </ul>
-        </div>
+        </>
     )
 }
 
